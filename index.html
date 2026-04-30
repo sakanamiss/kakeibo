@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>家計簿</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#1D9E75;--red:#D85A30;--blue:#378ADD;
+    --bg:#f8f7f4;--surface:#ffffff;--border:#e5e3de;
+    --text:#1a1a1a;--muted:#888780;--subtle:#f1efe8;
+  }
+  body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Koto','Yu Gothic',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px}
+  .header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 20px;position:sticky;top:0;z-index:100}
+  .header h1{font-size:18px;font-weight:600;letter-spacing:0.02em}
+  .header-month{font-size:13px;color:var(--muted);margin-top:2px}
+  .tabs{display:flex;background:var(--surface);border-top:1px solid var(--border);position:fixed;bottom:0;left:0;right:0;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+  .tab{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 4px;gap:4px;border:none;background:transparent;color:var(--muted);font-size:10px;font-family:inherit;cursor:pointer;transition:color 0.15s}
+  .tab.active{color:var(--green)}
+  .tab svg{width:22px;height:22px;stroke-width:1.8}
+  .content{max-width:480px;margin:0 auto;padding:16px}
+  .section{display:none}.section.active{display:block}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+  .card-wide{grid-column:1/-1}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:14px 16px}
+  .card-label{font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:500;letter-spacing:0.05em;text-transform:uppercase}
+  .card-value{font-size:26px;font-weight:700;letter-spacing:-0.02em}
+  .card-value.income{color:var(--green)}.card-value.expense{color:var(--red)}.card-value.balance{color:var(--blue)}
+  .panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px}
+  .panel-title{font-size:13px;font-weight:600;margin-bottom:12px;color:var(--text)}
+  .row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--subtle)}
+  .row:last-child{border-bottom:none}
+  .row-left{flex:1;min-width:0}
+  .row-name{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .row-amount{font-size:14px;font-weight:600;white-space:nowrap;margin-left:12px}
+  .tag-income{color:var(--green)}.tag-expense{color:var(--red)}.tag-asset{color:var(--blue)}
+  .progress-bar{height:6px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:6px}
+  .progress-fill{height:100%;border-radius:3px}
+  .empty{text-align:center;padding:28px 0;color:var(--muted);font-size:13px}
+  label{display:block;font-size:12px;color:var(--muted);font-weight:500;margin-bottom:4px;margin-top:12px}
+  label:first-child{margin-top:0}
+  input,select{width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:12px;font-size:15px;font-family:inherit;background:var(--surface);color:var(--text);appearance:none;-webkit-appearance:none}
+  input:focus,select:focus{outline:none;border-color:var(--green)}
+  .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .btn{display:block;width:100%;padding:13px;border:1px solid var(--border);border-radius:14px;background:var(--surface);color:var(--text);font-size:15px;font-family:inherit;font-weight:500;cursor:pointer;margin-top:16px;text-align:center;transition:opacity 0.15s}
+  .btn-primary{background:var(--green);color:#fff;border-color:var(--green)}
+  .btn:active{opacity:0.75}
+  .del-btn{padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;white-space:nowrap;margin-left:8px}
+  .forecast-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--subtle)}
+  .forecast-row:last-child{border-bottom:none}
+  .forecast-month{font-size:13px;font-weight:600;min-width:36px}
+  .forecast-bars{flex:1}
+  .forecast-bar{height:5px;border-radius:3px;margin-bottom:3px}
+  .forecast-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--muted)}
+  .forecast-diff{font-size:13px;font-weight:700;min-width:72px;text-align:right}
+  .section-note{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+  .asset-total{font-size:17px;font-weight:700;color:var(--blue);text-align:right;padding-top:10px;border-top:1px solid var(--border);margin-top:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>💰 家計簿</h1>
+  <div class="header-month" id="header-month"></div>
+</div>
+
+<div class="content">
+
+  <!-- ホーム -->
+  <div class="section active" id="tab-home">
+    <div class="cards">
+      <div class="card"><div class="card-label">今月の収入</div><div class="card-value income" id="h-income">¥0</div></div>
+      <div class="card"><div class="card-label">今月の支出</div><div class="card-value expense" id="h-expense">¥0</div></div>
+      <div class="card card-wide"><div class="card-label">今月の残高</div><div class="card-value balance" id="h-balance">¥0</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">カテゴリ別支出</div>
+      <div id="cat-breakdown"><div class="empty">まだ記録がありません</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">今月の記録</div>
+      <div id="recent-list"><div class="empty">まだ記録がありません</div></div>
+    </div>
+  </div>
+
+  <!-- 記録 -->
+  <div class="section" id="tab-add">
+    <div class="panel">
+      <div class="panel-title">支出・収入を記録</div>
+      <label>種別</label>
+      <select id="add-type">
+        <option value="expense">支出</option>
+        <option value="income">収入</option>
+      </select>
+      <label>内容</label>
+      <input type="text" id="add-name" placeholder="例：スーパー、給料">
+      <label>金額</label>
+      <input type="number" id="add-amount" inputmode="numeric" placeholder="例：3500">
+      <label>カテゴリ</label>
+      <select id="add-cat">
+        <option value="食費">食費</option>
+        <option value="光熱費">光熱費</option>
+        <option value="交通費">交通費</option>
+        <option value="車">車（オイル交換など）</option>
+        <option value="外食">外食</option>
+        <option value="日用品">日用品</option>
+        <option value="娯楽">娯楽</option>
+        <option value="給料">給料</option>
+        <option value="その他">その他</option>
+      </select>
+      <label>日付</label>
+      <input type="date" id="add-date">
+      <button class="btn btn-primary" onclick="addEntry()">追加する</button>
+    </div>
+  </div>
+
+  <!-- 固定費 -->
+  <div class="section" id="tab-fixed">
+    <div class="panel">
+      <div class="panel-title">固定費を登録</div>
+      <p class="section-note">毎月かかる費用（家賃・光熱費・車の定期点検など）を登録すると、将来予測に使われます。</p>
+      <label>名前</label>
+      <input type="text" id="fixed-name" placeholder="例：家賃、電気代">
+      <div class="form-row">
+        <div>
+          <label>金額</label>
+          <input type="number" id="fixed-amount" inputmode="numeric" placeholder="例：70000">
+        </div>
+        <div>
+          <label>支払日</label>
+          <select id="fixed-day">
+            <option value="">選択</option>
+            <script>for(let i=1;i<=31;i++)document.write(`<option value="${i}">${i}日</option>`)</script>
+          </select>
+        </div>
+      </div>
+      <label>カテゴリ</label>
+      <select id="fixed-cat">
+        <option value="家賃">家賃</option>
+        <option value="光熱費">光熱費</option>
+        <option value="車">車（定期）</option>
+        <option value="保険">保険</option>
+        <option value="サブスク">サブスク</option>
+        <option value="その他">その他</option>
+      </select>
+      <button class="btn btn-primary" onclick="addFixed()">登録する</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">登録済み固定費</div>
+      <div id="fixed-list"><div class="empty">固定費がありません</div></div>
+    </div>
+  </div>
+
+  <!-- 予測 -->
+  <div class="section" id="tab-forecast">
+    <div class="panel">
+      <div class="panel-title">給料の設定</div>
+      <div class="form-row">
+        <div>
+          <label>給料日</label>
+          <input type="number" id="salary-day" inputmode="numeric" placeholder="例：25" min="1" max="31">
+        </div>
+        <div>
+          <label>手取り額</label>
+          <input type="number" id="salary-amount" inputmode="numeric" placeholder="例：250000">
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveSalary()">保存する</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">3ヶ月の収支予測</div>
+      <div id="forecast-view"><div class="empty">給料と固定費を設定してください</div></div>
+    </div>
+    <div class="panel">
+      <div class="panel-title">来月の予定支出</div>
+      <div id="upcoming-view"><div class="empty">固定費を設定すると表示されます</div></div>
+    </div>
+  </div>
+
+  <!-- 資産 -->
+  <div class="section" id="tab-asset">
+    <div class="panel">
+      <div class="panel-title">資産を登録</div>
+      <label>名前</label>
+      <input type="text" id="asset-name" placeholder="例：貯金口座、現金">
+      <label>金額</label>
+      <input type="number" id="asset-amount" inputmode="numeric" placeholder="例：500000">
+      <button class="btn btn-primary" onclick="addAsset()">登録する</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">現在の資産</div>
+      <div id="asset-list"><div class="empty">資産がありません</div></div>
+      <div id="asset-total"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ボトムタブ -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('home',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    ホーム
+  </button>
+  <button class="tab" onclick="switchTab('add',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+    記録
+  </button>
+  <button class="tab" onclick="switchTab('fixed',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    固定費
+  </button>
+  <button class="tab" onclick="switchTab('forecast',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    予測
+  </button>
+  <button class="tab" onclick="switchTab('asset',this)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><polyline points="12 16 12.01 16"/></svg>
+    資産
+  </button>
+</div>
+
+<script>
+const STORAGE_KEY = 'kakeibo_v2';
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{"entries":[],"fixed":[],"assets":[],"salary":{"day":25,"amount":0}}');
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
+function fmt(n){return '¥'+Math.round(n).toLocaleString()}
+
+const now = new Date();
+document.getElementById('header-month').textContent = `${now.getFullYear()}年${now.getMonth()+1}月`;
+document.getElementById('add-date').valueAsDate = now;
+
+function switchTab(t, btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  render();
+}
+
+function addEntry(){
+  const type=document.getElementById('add-type').value;
+  const name=document.getElementById('add-name').value.trim();
+  const amount=parseFloat(document.getElementById('add-amount').value);
+  const cat=document.getElementById('add-cat').value;
+  const date=document.getElementById('add-date').value;
+  if(!name||!amount||!date){alert('内容、金額、日付を入力してください');return}
+  data.entries.push({id:Date.now(),type,name,amount,cat,date});
+  save();render();
+  document.getElementById('add-name').value='';
+  document.getElementById('add-amount').value='';
+  alert('追加しました！');
+}
+
+function addFixed(){
+  const name=document.getElementById('fixed-name').value.trim();
+  const amount=parseFloat(document.getElementById('fixed-amount').value);
+  const day=parseInt(document.getElementById('fixed-day').value);
+  const cat=document.getElementById('fixed-cat').value;
+  if(!name||!amount||!day){alert('全項目を入力してください');return}
+  data.fixed.push({id:Date.now(),name,amount,day,cat});
+  save();render();
+  document.getElementById('fixed-name').value='';
+  document.getElementById('fixed-amount').value='';
+  alert('登録しました！');
+}
+
+function removeFixed(id){if(confirm('削除しますか？')){data.fixed=data.fixed.filter(f=>f.id!==id);save();render()}}
+
+function addAsset(){
+  const name=document.getElementById('asset-name').value.trim();
+  const amount=parseFloat(document.getElementById('asset-amount').value);
+  if(!name||!amount){alert('名前と金額を入力してください');return}
+  data.assets.push({id:Date.now(),name,amount});
+  save();render();
+  document.getElementById('asset-name').value='';
+  document.getElementById('asset-amount').value='';
+  alert('登録しました！');
+}
+
+function removeAsset(id){if(confirm('削除しますか？')){data.assets=data.assets.filter(a=>a.id!==id);save();render()}}
+
+function saveSalary(){
+  const day=parseInt(document.getElementById('salary-day').value);
+  const amount=parseFloat(document.getElementById('salary-amount').value);
+  if(!day||!amount){alert('給料日と手取り額を入力してください');return}
+  data.salary={day,amount};
+  save();render();
+  alert('保存しました！');
+}
+
+function render(){
+  const ym=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const thisMonth=data.entries.filter(e=>e.date.startsWith(ym));
+  const income=thisMonth.filter(e=>e.type==='income').reduce((s,e)=>s+e.amount,0);
+  const expense=thisMonth.filter(e=>e.type==='expense').reduce((s,e)=>s+e.amount,0);
+  document.getElementById('h-income').textContent=fmt(income);
+  document.getElementById('h-expense').textContent=fmt(expense);
+  document.getElementById('h-balance').textContent=fmt(income-expense);
+
+  const cats={};
+  thisMonth.filter(e=>e.type==='expense').forEach(e=>{cats[e.cat]=(cats[e.cat]||0)+e.amount});
+  const catEl=document.getElementById('cat-breakdown');
+  if(!Object.keys(cats).length){catEl.innerHTML='<div class="empty">まだ記録がありません</div>'}
+  else{
+    const max=Math.max(...Object.values(cats));
+    catEl.innerHTML=Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([c,v])=>`
+      <div class="row">
+        <div class="row-left">
+          <div class="row-name">${c}</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${Math.round(v/max*100)}%;background:var(--red)"></div></div>
+        </div>
+        <div class="row-amount tag-expense">${fmt(v)}</div>
+      </div>`).join('')
+  }
+
+  const listEl=document.getElementById('recent-list');
+  const sorted=[...thisMonth].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,15);
+  if(!sorted.length){listEl.innerHTML='<div class="empty">まだ記録がありません</div>'}
+  else{listEl.innerHTML=sorted.map(e=>`
+    <div class="row">
+      <div class="row-left">
+        <div class="row-name">${e.name}</div>
+        <div class="row-sub">${e.date} · ${e.cat}</div>
+      </div>
+      <div class="row-amount ${e.type==='income'?'tag-income':'tag-expense'}">${e.type==='income'?'+':'-'}${fmt(e.amount)}</div>
+    </div>`).join('')}
+
+  const fixedEl=document.getElementById('fixed-list');
+  if(!data.fixed.length){fixedEl.innerHTML='<div class="empty">固定費がありません</div>'}
+  else{fixedEl.innerHTML=data.fixed.sort((a,b)=>a.day-b.day).map(f=>`
+    <div class="row">
+      <div class="row-left">
+        <div class="row-name">${f.name}</div>
+        <div class="row-sub">毎月${f.day}日 · ${f.cat}</div>
+      </div>
+      <div style="display:flex;align-items:center">
+        <div class="row-amount tag-expense">${fmt(f.amount)}</div>
+        <button class="del-btn" onclick="removeFixed(${f.id})">削除</button>
+      </div>
+    </div>`).join('')}
+
+  const fEl=document.getElementById('forecast-view');
+  const uEl=document.getElementById('upcoming-view');
+  const fixedTotal=data.fixed.reduce((s,f)=>s+f.amount,0);
+  if(data.salary.amount>0&&data.fixed.length>0){
+    const forecasts=[0,1,2].map(i=>{
+      const d=new Date(now.getFullYear(),now.getMonth()+i,1);
+      return{label:`${d.getMonth()+1}月`,inc:data.salary.amount,exp:fixedTotal,diff:data.salary.amount-fixedTotal}
+    });
+    const maxVal=data.salary.amount;
+    fEl.innerHTML=forecasts.map(f=>`
+      <div class="forecast-row">
+        <div class="forecast-month">${f.label}</div>
+        <div class="forecast-bars">
+          <div class="forecast-bar" style="width:100%;background:var(--green);opacity:0.25"></div>
+          <div class="forecast-bar" style="width:${Math.min(100,Math.round(f.exp/maxVal*100))}%;background:var(--red)"></div>
+          <div class="forecast-labels"><span>収入 ${fmt(f.inc)}</span><span>固定費 ${fmt(f.exp)}</span></div>
+        </div>
+        <div class="forecast-diff ${f.diff>=0?'tag-income':'tag-expense'}">${f.diff>=0?'+':''}${fmt(f.diff)}</div>
+      </div>`).join('')
+    const nm=new Date(now.getFullYear(),now.getMonth()+1,1);
+    uEl.innerHTML=data.fixed.sort((a,b)=>a.day-b.day).map(f=>`
+      <div class="row">
+        <div class="row-left">
+          <div class="row-name">${f.name}</div>
+          <div class="row-sub">${nm.getMonth()+1}月${f.day}日 · ${f.cat}</div>
+        </div>
+        <div class="row-amount tag-expense">${fmt(f.amount)}</div>
+      </div>`).join('')
+  }else{
+    fEl.innerHTML='<div class="empty">給料と固定費を設定してください</div>';
+    uEl.innerHTML='<div class="empty">固定費を設定すると表示されます</div>'
+  }
+
+  document.getElementById('salary-day').value=data.salary.day||'';
+  document.getElementById('salary-amount').value=data.salary.amount||'';
+
+  const assetEl=document.getElementById('asset-list');
+  const totalAsset=data.assets.reduce((s,a)=>s+a.amount,0);
+  if(!data.assets.length){assetEl.innerHTML='<div class="empty">資産がありません</div>';document.getElementById('asset-total').textContent=''}
+  else{
+    assetEl.innerHTML=data.assets.map(a=>`
+      <div class="row">
+        <div class="row-left"><div class="row-name">${a.name}</div></div>
+        <div style="display:flex;align-items:center">
+          <div class="row-amount tag-asset">${fmt(a.amount)}</div>
+          <button class="del-btn" onclick="removeAsset(${a.id})">削除</button>
+        </div>
+      </div>`).join('');
+    document.getElementById('asset-total').innerHTML=`<div class="asset-total">合計 ${fmt(totalAsset)}</div>`
+  }
+}
+render();
+</script>
+</body>
+</html>
