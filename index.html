@@ -141,7 +141,6 @@
           <label>支払日</label>
           <select id="fixed-day">
             <option value="">選択</option>
-            <script>for(let i=1;i<=31;i++)document.write(`<option value="${i}">${i}日</option>`)</script>
           </select>
         </div>
       </div>
@@ -266,6 +265,12 @@ function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(data))}
 function fmt(n){return '¥'+Math.round(n).toLocaleString()}
 
 const now = new Date();
+const daySelect = document.getElementById('fixed-day');
+for(let i=1;i<=31;i++){
+  const opt=document.createElement('option');
+  opt.value=i;opt.textContent=i+'日';
+  daySelect.appendChild(opt);
+}
 document.getElementById('header-month').textContent = `${now.getFullYear()}年${now.getMonth()+1}月`;
 document.getElementById('add-date').valueAsDate = now;
 
