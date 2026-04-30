@@ -28,7 +28,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px}
 .card-label{font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500}
 .card-value{font-size:24px;font-weight:700}
-.income{color:var(--green)}.expense{color:var(--red)}.blue{color:var(--blue)}
+.c-income{color:var(--green)}.c-expense{color:var(--red)}.c-blue{color:var(--blue)}
 .panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px}
 .panel-title{font-size:13px;font-weight:600;margin-bottom:10px}
 .row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--subtle)}
@@ -38,14 +38,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans',sans-serif;bac
 .row-sub{font-size:11px;color:var(--muted);margin-top:1px}
 .row-amt{font-size:14px;font-weight:600;margin-left:10px;white-space:nowrap}
 .empty{text-align:center;padding:24px;color:var(--muted);font-size:13px}
-.field-label{display:block;font-size:12px;color:var(--muted);font-weight:500;margin:12px 0 4px}
-.field-label:first-child{margin-top:0}
+.fl{display:block;font-size:12px;color:var(--muted);font-weight:500;margin:12px 0 4px}
+.fl:first-child{margin-top:0}
 input,select{width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;font-size:15px;font-family:inherit;background:var(--surface);color:var(--text)}
 input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
 .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.btn{display:block;width:100%;padding:13px;border-radius:12px;font-size:15px;font-family:inherit;font-weight:600;cursor:pointer;margin-top:14px;border:none}
-.btn-green{background:var(--green);color:#fff}
-.btn-green:active{opacity:0.8}
+.gbtn{display:block;width:100%;padding:13px;border-radius:12px;font-size:15px;font-family:inherit;font-weight:600;cursor:pointer;margin-top:14px;border:none;background:var(--green);color:#fff}
+.gbtn:active{opacity:0.8}
 .delbtn{padding:4px 10px;font-size:11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--muted);cursor:pointer;font-family:inherit;margin-left:8px;white-space:nowrap}
 .bar-wrap{height:6px;background:var(--subtle);border-radius:3px;overflow:hidden;margin-top:5px}
 .bar-fill{height:100%;border-radius:3px;background:var(--red)}
@@ -75,11 +74,12 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
 
 <div class="content">
 
+  <!-- ホーム -->
   <div class="section active" id="tab-home">
     <div class="cards">
-      <div class="card"><div class="card-label">今月の収入</div><div class="card-value income" id="h-income">¥0</div></div>
-      <div class="card"><div class="card-label">今月の支出</div><div class="card-value expense" id="h-expense">¥0</div></div>
-      <div class="card card-wide"><div class="card-label">今月の残高</div><div class="card-value blue" id="h-balance">¥0</div></div>
+      <div class="card"><div class="card-label">今月の収入</div><div class="card-value c-income" id="h-income">¥0</div></div>
+      <div class="card"><div class="card-label">今月の支出</div><div class="card-value c-expense" id="h-expense">¥0</div></div>
+      <div class="card card-wide"><div class="card-label">今月の残高</div><div class="card-value c-blue" id="h-balance">¥0</div></div>
     </div>
     <div class="panel">
       <div class="panel-title">カテゴリ別支出</div>
@@ -91,82 +91,84 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
     </div>
   </div>
 
+  <!-- 記録 -->
   <div class="section" id="tab-add">
     <div class="panel">
       <div class="panel-title">支出・収入を記録</div>
-      <label class="field-label">種別</label>
+      <label class="fl">種別</label>
       <select id="a-type">
         <option value="expense">支出</option>
         <option value="income">収入</option>
       </select>
-      <label class="field-label">内容</label>
+      <label class="fl">内容</label>
       <input type="text" id="a-name" placeholder="例：スーパー、給料">
-      <label class="field-label">金額</label>
+      <label class="fl">金額</label>
       <input type="number" id="a-amount" inputmode="numeric" placeholder="例：3500">
-      <label class="field-label">カテゴリ</label>
+      <label class="fl">カテゴリ</label>
       <select id="a-cat">
         <option>食費</option><option>光熱費</option><option>交通費</option>
         <option>車</option><option>外食</option><option>日用品</option>
-        <option>娯楽</option><option>給料</option><option>その他</option>
+        <option>娯楽</option><option>給料</option><option>年金</option><option>その他</option>
       </select>
-      <label class="field-label">日付</label>
+      <label class="fl">日付</label>
       <input type="date" id="a-date">
-      <button class="btn btn-green" id="btn-add-entry">追加する</button>
+      <button class="gbtn" id="btn-add-entry">追加する</button>
     </div>
   </div>
 
+  <!-- 固定費 -->
   <div class="section" id="tab-fixed">
     <div class="panel">
       <div class="panel-title">固定費を登録</div>
       <p class="note">毎月かかる費用を登録すると将来予測に使われます。</p>
-      <label class="field-label">名前</label>
+      <label class="fl">名前</label>
       <input type="text" id="f-name" placeholder="例：家賃、電気代">
       <div class="two-col">
         <div>
-          <label class="field-label">金額</label>
+          <label class="fl">金額</label>
           <input type="number" id="f-amount" inputmode="numeric" placeholder="例：70000">
         </div>
         <div>
-          <label class="field-label">支払日（日）</label>
+          <label class="fl">支払日</label>
           <select id="f-day"><option value="">選択</option></select>
         </div>
       </div>
-      <label class="field-label">カテゴリ</label>
+      <label class="fl">カテゴリ</label>
       <select id="f-cat">
         <option>家賃</option><option>光熱費</option><option>車</option>
         <option>保険</option><option>サブスク</option><option>その他</option>
       </select>
-      <button class="btn btn-green" id="btn-add-fixed">登録する</button>
+      <button class="gbtn" id="btn-add-fixed">登録する</button>
     </div>
     <div class="panel">
       <div class="panel-title">登録済み固定費</div>
       <div id="fixed-list"><div class="empty">固定費がありません</div></div>
     </div>
     <div class="panel">
-      <div class="panel-title">定期収入を登録</div>
-      <p class="note">年金など数ヶ月ごとの収入を登録すると予測に反映されます。</p>
-      <label class="field-label">名前</label>
+      <div class="panel-title">定期収入を登録（年金など）</div>
+      <p class="note">2ヶ月ごとなど定期的な収入を登録すると予測に反映されます。</p>
+      <label class="fl">名前</label>
       <input type="text" id="ri-name" placeholder="例：年金">
+      <label class="fl">金額</label>
+      <input type="number" id="ri-amount" inputmode="numeric" placeholder="例：150000">
       <div class="two-col">
         <div>
-          <label class="field-label">金額</label>
-          <input type="number" id="ri-amount" inputmode="numeric" placeholder="例：150000">
-        </div>
-        <div>
-          <label class="field-label">受取日</label>
+          <label class="fl">受取日</label>
           <select id="ri-day"><option value="">選択</option></select>
         </div>
+        <div>
+          <label class="fl">受取間隔</label>
+          <select id="ri-interval">
+            <option value="1">毎月</option>
+            <option value="2" selected>2ヶ月ごと</option>
+            <option value="3">3ヶ月ごと</option>
+            <option value="6">6ヶ月ごと</option>
+          </select>
+        </div>
       </div>
-      <label class="field-label">受取間隔</label>
-      <select id="ri-interval">
-        <option value="1">毎月</option>
-        <option value="2" selected>2ヶ月ごと</option>
-        <option value="3">3ヶ月ごと</option>
-        <option value="6">6ヶ月ごと</option>
-      </select>
-      <label class="field-label">次回受取月</label>
+      <label class="fl">次回受取月</label>
       <select id="ri-next"></select>
-      <button class="btn btn-green" id="btn-add-ri">登録する</button>
+      <button class="gbtn" id="btn-add-ri">登録する</button>
     </div>
     <div class="panel">
       <div class="panel-title">登録済み定期収入</div>
@@ -174,39 +176,41 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
     </div>
   </div>
 
+  <!-- 予測 -->
   <div class="section" id="tab-forecast">
     <div class="panel">
       <div class="panel-title">給料の設定</div>
       <div class="two-col">
         <div>
-          <label class="field-label">給料日</label>
+          <label class="fl">給料日</label>
           <input type="number" id="s-day" inputmode="numeric" placeholder="例：25" min="1" max="31">
         </div>
         <div>
-          <label class="field-label">手取り額</label>
+          <label class="fl">手取り額</label>
           <input type="number" id="s-amount" inputmode="numeric" placeholder="例：250000">
         </div>
       </div>
-      <button class="btn btn-green" id="btn-save-salary">保存する</button>
+      <button class="gbtn" id="btn-save-salary">保存する</button>
     </div>
     <div class="panel">
       <div class="panel-title">3ヶ月の収支予測</div>
-      <div id="forecast-view"><div class="empty">給料と固定費を設定してください</div></div>
+      <div id="forecast-view"><div class="empty">給料または定期収入を設定してください</div></div>
     </div>
     <div class="panel">
-      <div class="panel-title">来月の予定支出</div>
+      <div class="panel-title">来月の予定</div>
       <div id="upcoming-view"><div class="empty">固定費を設定すると表示されます</div></div>
     </div>
   </div>
 
+  <!-- 資産 -->
   <div class="section" id="tab-asset">
     <div class="panel">
       <div class="panel-title">資産を登録</div>
-      <label class="field-label">名前</label>
+      <label class="fl">名前</label>
       <input type="text" id="as-name" placeholder="例：貯金口座、現金">
-      <label class="field-label">金額</label>
+      <label class="fl">金額</label>
       <input type="number" id="as-amount" inputmode="numeric" placeholder="例：500000">
-      <button class="btn btn-green" id="btn-add-asset">登録する</button>
+      <button class="gbtn" id="btn-add-asset">登録する</button>
     </div>
     <div class="panel">
       <div class="panel-title">現在の資産</div>
@@ -226,71 +230,73 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
 </div>
 
 <script>
-var DB_KEY = 'kakeibo_v3';
-var db = {entries:[], fixed:[], assets:[], salary:{day:25, amount:0}, recurringIncome:[]};
+var DB_KEY = 'kakeibo_v4';
+var db = {entries:[], fixed:[], assets:[], salary:{day:25,amount:0}, ri:[]};
 
 function dbLoad() {
   try {
     var s = localStorage.getItem(DB_KEY);
     if (s) {
-      db = JSON.parse(s);
-      if (!db.recurringIncome) db.recurringIncome = [];
+      var loaded = JSON.parse(s);
+      db.entries = loaded.entries || [];
+      db.fixed = loaded.fixed || [];
+      db.assets = loaded.assets || [];
+      db.salary = loaded.salary || {day:25,amount:0};
+      db.ri = loaded.ri || [];
     }
-  } catch(e) { console.log('load error', e); }
+  } catch(e) {}
 }
 
 function dbSave() {
-  try {
-    localStorage.setItem(DB_KEY, JSON.stringify(db));
-  } catch(e) { console.log('save error', e); }
+  try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch(e) {}
 }
 
-function fmt(n) {
-  return '¥' + Math.round(n).toLocaleString('ja-JP');
-}
-
+function fmt(n) { return '¥' + Math.round(n).toLocaleString('ja-JP'); }
 function pad(n) { return n < 10 ? '0'+n : ''+n; }
 
 var now = new Date();
 document.getElementById('hd-month').textContent = now.getFullYear() + '年' + (now.getMonth()+1) + '月';
 document.getElementById('a-date').valueAsDate = now;
 
-var daySelect = document.getElementById('f-day');
-for (var d = 1; d <= 31; d++) {
+// 固定費の支払日
+var fDaySel = document.getElementById('f-day');
+for (var i = 1; i <= 31; i++) {
   var o = document.createElement('option');
-  o.value = String(d);
-  o.textContent = d + '日';
-  daySelect.appendChild(o);
+  o.value = i; o.textContent = i + '日';
+  fDaySel.appendChild(o);
 }
 
-var riDaySelect = document.getElementById('ri-day');
-for (var d2 = 1; d2 <= 31; d2++) {
-  var o2 = document.createElement('option');
-  o2.value = String(d2);
-  o2.textContent = d2 + '日';
-  riDaySelect.appendChild(o2);
+// 定期収入の受取日
+var riDaySel = document.getElementById('ri-day');
+for (var i = 1; i <= 31; i++) {
+  var o = document.createElement('option');
+  o.value = i; o.textContent = i + '日';
+  riDaySel.appendChild(o);
 }
 
-var riNextSelect = document.getElementById('ri-next');
-for (var m = 0; m < 12; m++) {
-  var md = new Date(now.getFullYear(), now.getMonth()+m, 1);
-  var o3 = document.createElement('option');
-  o3.value = md.getFullYear() + '-' + pad(md.getMonth()+1);
-  o3.textContent = md.getFullYear() + '年' + (md.getMonth()+1) + '月';
-  riNextSelect.appendChild(o3);
+// 定期収入の次回受取月
+var riNextSel = document.getElementById('ri-next');
+for (var i = 0; i < 13; i++) {
+  var d = new Date(now.getFullYear(), now.getMonth()+i, 1);
+  var o = document.createElement('option');
+  o.value = d.getFullYear() + '-' + pad(d.getMonth()+1);
+  o.textContent = d.getFullYear() + '年' + (d.getMonth()+1) + '月';
+  riNextSel.appendChild(o);
 }
 
+// タブ切替
 document.querySelectorAll('.tab').forEach(function(btn) {
   btn.addEventListener('click', function() {
     var t = btn.getAttribute('data-tab');
     document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
-    document.getElementById('tab-' + t).classList.add('active');
+    document.getElementById('tab-'+t).classList.add('active');
     document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
     btn.classList.add('active');
     render();
   });
 });
 
+// 記録追加
 document.getElementById('btn-add-entry').addEventListener('click', function() {
   var type = document.getElementById('a-type').value;
   var name = document.getElementById('a-name').value.trim();
@@ -298,7 +304,7 @@ document.getElementById('btn-add-entry').addEventListener('click', function() {
   var cat = document.getElementById('a-cat').value;
   var date = document.getElementById('a-date').value;
   if (!name || isNaN(amount) || !date) { alert('内容・金額・日付を入力してください'); return; }
-  db.entries.push({id: Date.now(), type:type, name:name, amount:amount, cat:cat, date:date});
+  db.entries.push({id:Date.now(), type:type, name:name, amount:amount, cat:cat, date:date});
   dbSave();
   document.getElementById('a-name').value = '';
   document.getElementById('a-amount').value = '';
@@ -306,13 +312,14 @@ document.getElementById('btn-add-entry').addEventListener('click', function() {
   alert('追加しました！');
 });
 
+// 固定費追加
 document.getElementById('btn-add-fixed').addEventListener('click', function() {
   var name = document.getElementById('f-name').value.trim();
   var amount = parseFloat(document.getElementById('f-amount').value);
   var day = parseInt(document.getElementById('f-day').value);
   var cat = document.getElementById('f-cat').value;
   if (!name || isNaN(amount) || isNaN(day)) { alert('名前・金額・支払日を入力してください'); return; }
-  db.fixed.push({id: Date.now(), name:name, amount:amount, day:day, cat:cat});
+  db.fixed.push({id:Date.now(), name:name, amount:amount, day:day, cat:cat});
   dbSave();
   document.getElementById('f-name').value = '';
   document.getElementById('f-amount').value = '';
@@ -321,6 +328,24 @@ document.getElementById('btn-add-fixed').addEventListener('click', function() {
   alert('登録しました！');
 });
 
+// 定期収入追加
+document.getElementById('btn-add-ri').addEventListener('click', function() {
+  var name = document.getElementById('ri-name').value.trim();
+  var amount = parseFloat(document.getElementById('ri-amount').value);
+  var day = parseInt(document.getElementById('ri-day').value);
+  var interval = parseInt(document.getElementById('ri-interval').value);
+  var next = document.getElementById('ri-next').value;
+  if (!name || isNaN(amount) || isNaN(day) || !next) { alert('全項目を入力してください'); return; }
+  db.ri.push({id:Date.now(), name:name, amount:amount, day:day, interval:interval, next:next});
+  dbSave();
+  document.getElementById('ri-name').value = '';
+  document.getElementById('ri-amount').value = '';
+  document.getElementById('ri-day').value = '';
+  render();
+  alert('登録しました！');
+});
+
+// 給料保存
 document.getElementById('btn-save-salary').addEventListener('click', function() {
   var day = parseInt(document.getElementById('s-day').value);
   var amount = parseFloat(document.getElementById('s-amount').value);
@@ -331,11 +356,12 @@ document.getElementById('btn-save-salary').addEventListener('click', function() 
   alert('保存しました！');
 });
 
+// 資産追加
 document.getElementById('btn-add-asset').addEventListener('click', function() {
   var name = document.getElementById('as-name').value.trim();
   var amount = parseFloat(document.getElementById('as-amount').value);
   if (!name || isNaN(amount)) { alert('名前と金額を入力してください'); return; }
-  db.assets.push({id: Date.now(), name:name, amount:amount});
+  db.assets.push({id:Date.now(), name:name, amount:amount});
   dbSave();
   document.getElementById('as-name').value = '';
   document.getElementById('as-amount').value = '';
@@ -343,37 +369,40 @@ document.getElementById('btn-add-asset').addEventListener('click', function() {
   alert('登録しました！');
 });
 
+// バックアップ
 document.getElementById('btn-backup').addEventListener('click', function() {
-  var json = JSON.stringify(db, null, 2);
-  var blob = new Blob([json], {type:'application/json'});
+  var blob = new Blob([JSON.stringify(db,null,2)], {type:'application/json'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   var dt = new Date();
   a.href = url;
-  a.download = 'kakeibo_' + dt.getFullYear() + pad(dt.getMonth()+1) + pad(dt.getDate()) + '.json';
+  a.download = 'kakeibo_'+dt.getFullYear()+pad(dt.getMonth()+1)+pad(dt.getDate())+'.json';
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
 });
 
+// 復元
 document.getElementById('btn-restore').addEventListener('click', function() {
   document.getElementById('import-file').click();
 });
-
 document.getElementById('import-file').addEventListener('change', function(e) {
   var file = e.target.files[0];
   if (!file) return;
   var reader = new FileReader();
   reader.onload = function(ev) {
     try {
-      var imported = JSON.parse(ev.target.result);
-      if (!imported.entries || !imported.fixed || !imported.assets) { alert('ファイルが正しくありません'); return; }
-      if (confirm('現在のデータを上書きしてインポートしますか？')) {
-        db = imported;
-        dbSave();
-        render();
-        alert('インポートしました！');
+      var imp = JSON.parse(ev.target.result);
+      if (!imp.entries) { alert('ファイルが正しくありません'); return; }
+      if (confirm('現在のデータを上書きしますか？')) {
+        db.entries = imp.entries || [];
+        db.fixed = imp.fixed || [];
+        db.assets = imp.assets || [];
+        db.salary = imp.salary || {day:25,amount:0};
+        db.ri = imp.ri || [];
+        dbSave(); render();
+        alert('復元しました！');
       }
     } catch(err) { alert('読み込みに失敗しました'); }
   };
@@ -381,146 +410,126 @@ document.getElementById('import-file').addEventListener('change', function(e) {
   e.target.value = '';
 });
 
-document.getElementById('btn-add-ri').addEventListener('click', function() {
-  var name = document.getElementById('ri-name').value.trim();
-  var amount = parseFloat(document.getElementById('ri-amount').value);
-  var day = parseInt(document.getElementById('ri-day').value);
-  var interval = parseInt(document.getElementById('ri-interval').value);
-  var next = document.getElementById('ri-next').value;
-  if (!name || isNaN(amount) || isNaN(day) || !next) { alert('全項目を入力してください'); return; }
-  db.recurringIncome.push({id: Date.now(), name:name, amount:amount, day:day, interval:interval, next:next});
-  dbSave();
-  document.getElementById('ri-name').value = '';
-  document.getElementById('ri-amount').value = '';
-  document.getElementById('ri-day').value = '';
-  render();
-  alert('登録しました！');
-});
-
-window.removeRI = function(id) {
-  if (confirm('削除しますか？')) {
-    db.recurringIncome = db.recurringIncome.filter(function(r){ return r.id !== id; });
-    dbSave(); render();
-  }
+// 削除
+window.removeFixed = function(id) {
+  if (confirm('削除しますか？')) { db.fixed = db.fixed.filter(function(f){ return f.id!==id; }); dbSave(); render(); }
 };
-  if (confirm('削除しますか？')) {
-    db.fixed = db.fixed.filter(function(f){ return f.id !== id; });
-    dbSave(); render();
-  }
-};
-
 window.removeAsset = function(id) {
-  if (confirm('削除しますか？')) {
-    db.assets = db.assets.filter(function(a){ return a.id !== id; });
-    dbSave(); render();
-  }
+  if (confirm('削除しますか？')) { db.assets = db.assets.filter(function(a){ return a.id!==id; }); dbSave(); render(); }
+};
+window.removeRI = function(id) {
+  if (confirm('削除しますか？')) { db.ri = db.ri.filter(function(r){ return r.id!==id; }); dbSave(); render(); }
 };
 
 function render() {
-  var ym = now.getFullYear() + '-' + pad(now.getMonth()+1);
-  var thisMonth = db.entries.filter(function(e){ return e.date.indexOf(ym) === 0; });
+  var ym = now.getFullYear()+'-'+pad(now.getMonth()+1);
+  var thisMonth = db.entries.filter(function(e){ return e.date.indexOf(ym)===0; });
   var income = 0, expense = 0;
   thisMonth.forEach(function(e){ if(e.type==='income') income+=e.amount; else expense+=e.amount; });
   document.getElementById('h-income').textContent = fmt(income);
   document.getElementById('h-expense').textContent = fmt(expense);
-  document.getElementById('h-balance').textContent = fmt(income - expense);
+  document.getElementById('h-balance').textContent = fmt(income-expense);
 
+  // カテゴリ別
   var cats = {};
-  thisMonth.filter(function(e){ return e.type==='expense'; }).forEach(function(e){
-    cats[e.cat] = (cats[e.cat]||0) + e.amount;
-  });
+  thisMonth.filter(function(e){ return e.type==='expense'; }).forEach(function(e){ cats[e.cat]=(cats[e.cat]||0)+e.amount; });
   var catEl = document.getElementById('cat-list');
-  var catKeys = Object.keys(cats);
-  if (!catKeys.length) {
-    catEl.innerHTML = '<div class="empty">まだ記録がありません</div>';
-  } else {
-    var max = Math.max.apply(null, catKeys.map(function(k){ return cats[k]; }));
-    catEl.innerHTML = catKeys.sort(function(a,b){ return cats[b]-cats[a]; }).map(function(c){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+c+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(cats[c]/max*100)+'%"></div></div></div><div class="row-amt expense">'+fmt(cats[c])+'</div></div>';
+  var keys = Object.keys(cats);
+  if (!keys.length) { catEl.innerHTML='<div class="empty">まだ記録がありません</div>'; }
+  else {
+    var max = Math.max.apply(null, keys.map(function(k){ return cats[k]; }));
+    catEl.innerHTML = keys.sort(function(a,b){ return cats[b]-cats[a]; }).map(function(c){
+      return '<div class="row"><div class="row-left"><div class="row-name">'+c+'</div><div class="bar-wrap"><div class="bar-fill" style="width:'+Math.round(cats[c]/max*100)+'%"></div></div></div><div class="row-amt c-expense">'+fmt(cats[c])+'</div></div>';
     }).join('');
   }
 
+  // 記録一覧
   var entEl = document.getElementById('entry-list');
-  var sorted = thisMonth.slice().sort(function(a,b){ return b.date > a.date ? 1 : -1; }).slice(0,15);
-  if (!sorted.length) {
-    entEl.innerHTML = '<div class="empty">まだ記録がありません</div>';
-  } else {
+  var sorted = thisMonth.slice().sort(function(a,b){ return b.date>a.date?1:-1; }).slice(0,15);
+  if (!sorted.length) { entEl.innerHTML='<div class="empty">まだ記録がありません</div>'; }
+  else {
     entEl.innerHTML = sorted.map(function(e){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+e.name+'</div><div class="row-sub">'+e.date+' · '+e.cat+'</div></div><div class="row-amt '+(e.type==='income'?'income':'expense')+'">'+(e.type==='income'?'+':'-')+fmt(e.amount)+'</div></div>';
+      return '<div class="row"><div class="row-left"><div class="row-name">'+e.name+'</div><div class="row-sub">'+e.date+' · '+e.cat+'</div></div><div class="row-amt '+(e.type==='income'?'c-income':'c-expense')+'">'+(e.type==='income'?'+':'-')+fmt(e.amount)+'</div></div>';
     }).join('');
   }
 
+  // 固定費一覧
   var fixedEl = document.getElementById('fixed-list');
-  if (!db.fixed.length) {
-    fixedEl.innerHTML = '<div class="empty">固定費がありません</div>';
-  } else {
+  if (!db.fixed.length) { fixedEl.innerHTML='<div class="empty">固定費がありません</div>'; }
+  else {
     fixedEl.innerHTML = db.fixed.slice().sort(function(a,b){ return a.day-b.day; }).map(function(f){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">毎月'+f.day+'日 · '+f.cat+'</div></div><div style="display:flex;align-items:center"><div class="row-amt expense">'+fmt(f.amount)+'</div><button class="delbtn" onclick="removeFixed('+f.id+')">削除</button></div></div>';
+      return '<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">毎月'+f.day+'日 · '+f.cat+'</div></div><div style="display:flex;align-items:center"><div class="row-amt c-expense">'+fmt(f.amount)+'</div><button class="delbtn" onclick="removeFixed('+f.id+')">削除</button></div></div>';
     }).join('');
   }
 
+  // 定期収入一覧
   var riEl = document.getElementById('ri-list');
-  if (!db.recurringIncome.length) {
-    riEl.innerHTML = '<div class="empty">定期収入がありません</div>';
-  } else {
-    riEl.innerHTML = db.recurringIncome.map(function(r){
-      var intervalLabel = r.interval === 1 ? '毎月' : r.interval + 'ヶ月ごと';
-      return '<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+intervalLabel+' '+r.day+'日 · 次回: '+r.next.replace('-','年')+'月</div></div><div style="display:flex;align-items:center"><div class="row-amt income">+'+fmt(r.amount)+'</div><button class="delbtn" onclick="removeRI('+r.id+')">削除</button></div></div>';
+  if (!db.ri.length) { riEl.innerHTML='<div class="empty">定期収入がありません</div>'; }
+  else {
+    riEl.innerHTML = db.ri.map(function(r){
+      var lbl = r.interval===1?'毎月':r.interval+'ヶ月ごと';
+      var nxt = r.next.replace('-','年')+'月';
+      return '<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+lbl+' '+r.day+'日受取 · 次回: '+nxt+'</div></div><div style="display:flex;align-items:center"><div class="row-amt c-income">+'+fmt(r.amount)+'</div><button class="delbtn" onclick="removeRI('+r.id+')">削除</button></div></div>';
     }).join('');
   }
 
+  // 給料設定欄に反映
   document.getElementById('s-day').value = db.salary.day || '';
   document.getElementById('s-amount').value = db.salary.amount || '';
 
+  // 予測
   var fEl = document.getElementById('forecast-view');
   var uEl = document.getElementById('upcoming-view');
-  var fixedTotal = db.fixed.reduce(function(s,f){ return s+f.amount; }, 0);
-  if (db.salary.amount > 0 || db.recurringIncome.length > 0) {
+  var fixedTotal = db.fixed.reduce(function(s,f){ return s+f.amount; },0);
+  var hasIncome = db.salary.amount>0 || db.ri.length>0;
+
+  if (hasIncome) {
     var html = '';
     for (var i = 0; i < 3; i++) {
       var dt = new Date(now.getFullYear(), now.getMonth()+i, 1);
-      var label = (dt.getMonth()+1) + '月';
-      var monthKey = dt.getFullYear() + '-' + pad(dt.getMonth()+1);
+      var lbl = (dt.getMonth()+1)+'月';
       var inc = db.salary.amount;
-      db.recurringIncome.forEach(function(r) {
-        var nextDate = new Date(r.next + '-01');
-        var diffMonths = (dt.getFullYear() - nextDate.getFullYear()) * 12 + (dt.getMonth() - nextDate.getMonth());
-        if (diffMonths >= 0 && diffMonths % r.interval === 0) inc += r.amount;
+      db.ri.forEach(function(r) {
+        var nd = new Date(r.next.slice(0,4), parseInt(r.next.slice(5,7))-1, 1);
+        var diff = (dt.getFullYear()-nd.getFullYear())*12 + (dt.getMonth()-nd.getMonth());
+        if (diff>=0 && diff%r.interval===0) inc += r.amount;
       });
       var exp = fixedTotal;
-      var diff = inc - exp;
-      var pct = inc > 0 ? Math.min(100, Math.round(exp/inc*100)) : 0;
-      html += '<div class="forecast-row"><div class="f-month">'+label+'</div><div class="f-bars"><div class="f-bar" style="width:100%;background:var(--green);opacity:0.2"></div><div class="f-bar" style="width:'+pct+'%;background:var(--red)"></div><div class="f-labels"><span>収入 '+fmt(inc)+'</span><span>固定費 '+fmt(exp)+'</span></div></div><div class="f-diff '+(diff>=0?'income':'expense')+'">'+(diff>=0?'+':'')+fmt(diff)+'</div></div>';
+      var diff = inc-exp;
+      var pct = inc>0 ? Math.min(100,Math.round(exp/inc*100)) : 0;
+      html += '<div class="forecast-row"><div class="f-month">'+lbl+'</div><div class="f-bars"><div class="f-bar" style="width:100%;background:var(--green);opacity:0.2"></div><div class="f-bar" style="width:'+pct+'%;background:var(--red)"></div><div class="f-labels"><span>収入 '+fmt(inc)+'</span><span>固定費 '+fmt(exp)+'</span></div></div><div class="f-diff '+(diff>=0?'c-income':'c-expense')+'">'+(diff>=0?'+':'')+fmt(diff)+'</div></div>';
     }
     fEl.innerHTML = html;
+
     var nm = new Date(now.getFullYear(), now.getMonth()+1, 1);
-    var nmKey = nm.getFullYear() + '-' + pad(nm.getMonth()+1);
-    var upcomingItems = db.fixed.slice().sort(function(a,b){ return a.day-b.day; }).map(function(f){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+f.day+'日 · 固定費</div></div><div class="row-amt expense">'+fmt(f.amount)+'</div></div>';
+    var items = [];
+    db.fixed.slice().sort(function(a,b){ return a.day-b.day; }).forEach(function(f){
+      items.push('<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+f.day+'日 · 固定費</div></div><div class="row-amt c-expense">-'+fmt(f.amount)+'</div></div>');
     });
-    db.recurringIncome.forEach(function(r) {
-      var nextDate = new Date(r.next + '-01');
-      var diffMonths = (nm.getFullYear() - nextDate.getFullYear()) * 12 + (nm.getMonth() - nextDate.getMonth());
-      if (diffMonths >= 0 && diffMonths % r.interval === 0) {
-        upcomingItems.push('<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+r.day+'日 · 定期収入</div></div><div class="row-amt income">+'+fmt(r.amount)+'</div></div>');
+    db.ri.forEach(function(r) {
+      var nd = new Date(r.next.slice(0,4), parseInt(r.next.slice(5,7))-1, 1);
+      var diff = (nm.getFullYear()-nd.getFullYear())*12 + (nm.getMonth()-nd.getMonth());
+      if (diff>=0 && diff%r.interval===0) {
+        items.push('<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+r.day+'日 · 定期収入</div></div><div class="row-amt c-income">+'+fmt(r.amount)+'</div></div>');
       }
     });
-    uEl.innerHTML = upcomingItems.length ? upcomingItems.join('') : '<div class="empty">予定された収支はありません</div>';
+    uEl.innerHTML = items.length ? items.join('') : '<div class="empty">来月の予定はありません</div>';
   } else {
     fEl.innerHTML = '<div class="empty">給料または定期収入を設定してください</div>';
     uEl.innerHTML = '<div class="empty">固定費を設定すると表示されます</div>';
   }
 
+  // 資産
   var asEl = document.getElementById('asset-list');
-  var totalAsset = db.assets.reduce(function(s,a){ return s+a.amount; }, 0);
+  var total = db.assets.reduce(function(s,a){ return s+a.amount; },0);
   if (!db.assets.length) {
     asEl.innerHTML = '<div class="empty">資産がありません</div>';
     document.getElementById('asset-total').innerHTML = '';
   } else {
     asEl.innerHTML = db.assets.map(function(a){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+a.name+'</div></div><div style="display:flex;align-items:center"><div class="row-amt blue">'+fmt(a.amount)+'</div><button class="delbtn" onclick="removeAsset('+a.id+')">削除</button></div></div>';
+      return '<div class="row"><div class="row-left"><div class="row-name">'+a.name+'</div></div><div style="display:flex;align-items:center"><div class="row-amt c-blue">'+fmt(a.amount)+'</div><button class="delbtn" onclick="removeAsset('+a.id+')">削除</button></div></div>';
     }).join('');
-    document.getElementById('asset-total').innerHTML = '<div class="asset-total">合計 '+fmt(totalAsset)+'</div>';
+    document.getElementById('asset-total').innerHTML = '<div class="asset-total">合計 '+fmt(total)+'</div>';
   }
 }
 
