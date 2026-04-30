@@ -142,6 +142,36 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
       <div class="panel-title">登録済み固定費</div>
       <div id="fixed-list"><div class="empty">固定費がありません</div></div>
     </div>
+    <div class="panel">
+      <div class="panel-title">定期収入を登録</div>
+      <p class="note">年金など数ヶ月ごとの収入を登録すると予測に反映されます。</p>
+      <label class="field-label">名前</label>
+      <input type="text" id="ri-name" placeholder="例：年金">
+      <div class="two-col">
+        <div>
+          <label class="field-label">金額</label>
+          <input type="number" id="ri-amount" inputmode="numeric" placeholder="例：150000">
+        </div>
+        <div>
+          <label class="field-label">受取日</label>
+          <select id="ri-day"><option value="">選択</option></select>
+        </div>
+      </div>
+      <label class="field-label">受取間隔</label>
+      <select id="ri-interval">
+        <option value="1">毎月</option>
+        <option value="2" selected>2ヶ月ごと</option>
+        <option value="3">3ヶ月ごと</option>
+        <option value="6">6ヶ月ごと</option>
+      </select>
+      <label class="field-label">次回受取月</label>
+      <select id="ri-next"></select>
+      <button class="btn btn-green" id="btn-add-ri">登録する</button>
+    </div>
+    <div class="panel">
+      <div class="panel-title">登録済み定期収入</div>
+      <div id="ri-list"><div class="empty">定期収入がありません</div></div>
+    </div>
   </div>
 
   <div class="section" id="tab-forecast">
@@ -197,12 +227,15 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
 
 <script>
 var DB_KEY = 'kakeibo_v3';
-var db = {entries:[], fixed:[], assets:[], salary:{day:25, amount:0}};
+var db = {entries:[], fixed:[], assets:[], salary:{day:25, amount:0}, recurringIncome:[]};
 
 function dbLoad() {
   try {
     var s = localStorage.getItem(DB_KEY);
-    if (s) db = JSON.parse(s);
+    if (s) {
+      db = JSON.parse(s);
+      if (!db.recurringIncome) db.recurringIncome = [];
+    }
   } catch(e) { console.log('load error', e); }
 }
 
@@ -228,6 +261,23 @@ for (var d = 1; d <= 31; d++) {
   o.value = String(d);
   o.textContent = d + '日';
   daySelect.appendChild(o);
+}
+
+var riDaySelect = document.getElementById('ri-day');
+for (var d2 = 1; d2 <= 31; d2++) {
+  var o2 = document.createElement('option');
+  o2.value = String(d2);
+  o2.textContent = d2 + '日';
+  riDaySelect.appendChild(o2);
+}
+
+var riNextSelect = document.getElementById('ri-next');
+for (var m = 0; m < 12; m++) {
+  var md = new Date(now.getFullYear(), now.getMonth()+m, 1);
+  var o3 = document.createElement('option');
+  o3.value = md.getFullYear() + '-' + pad(md.getMonth()+1);
+  o3.textContent = md.getFullYear() + '年' + (md.getMonth()+1) + '月';
+  riNextSelect.appendChild(o3);
 }
 
 document.querySelectorAll('.tab').forEach(function(btn) {
@@ -331,7 +381,28 @@ document.getElementById('import-file').addEventListener('change', function(e) {
   e.target.value = '';
 });
 
-window.removeFixed = function(id) {
+document.getElementById('btn-add-ri').addEventListener('click', function() {
+  var name = document.getElementById('ri-name').value.trim();
+  var amount = parseFloat(document.getElementById('ri-amount').value);
+  var day = parseInt(document.getElementById('ri-day').value);
+  var interval = parseInt(document.getElementById('ri-interval').value);
+  var next = document.getElementById('ri-next').value;
+  if (!name || isNaN(amount) || isNaN(day) || !next) { alert('全項目を入力してください'); return; }
+  db.recurringIncome.push({id: Date.now(), name:name, amount:amount, day:day, interval:interval, next:next});
+  dbSave();
+  document.getElementById('ri-name').value = '';
+  document.getElementById('ri-amount').value = '';
+  document.getElementById('ri-day').value = '';
+  render();
+  alert('登録しました！');
+});
+
+window.removeRI = function(id) {
+  if (confirm('削除しますか？')) {
+    db.recurringIncome = db.recurringIncome.filter(function(r){ return r.id !== id; });
+    dbSave(); render();
+  }
+};
   if (confirm('削除しますか？')) {
     db.fixed = db.fixed.filter(function(f){ return f.id !== id; });
     dbSave(); render();
@@ -388,30 +459,55 @@ function render() {
     }).join('');
   }
 
+  var riEl = document.getElementById('ri-list');
+  if (!db.recurringIncome.length) {
+    riEl.innerHTML = '<div class="empty">定期収入がありません</div>';
+  } else {
+    riEl.innerHTML = db.recurringIncome.map(function(r){
+      var intervalLabel = r.interval === 1 ? '毎月' : r.interval + 'ヶ月ごと';
+      return '<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+intervalLabel+' '+r.day+'日 · 次回: '+r.next.replace('-','年')+'月</div></div><div style="display:flex;align-items:center"><div class="row-amt income">+'+fmt(r.amount)+'</div><button class="delbtn" onclick="removeRI('+r.id+')">削除</button></div></div>';
+    }).join('');
+  }
+
   document.getElementById('s-day').value = db.salary.day || '';
   document.getElementById('s-amount').value = db.salary.amount || '';
 
   var fEl = document.getElementById('forecast-view');
   var uEl = document.getElementById('upcoming-view');
   var fixedTotal = db.fixed.reduce(function(s,f){ return s+f.amount; }, 0);
-  if (db.salary.amount > 0 && db.fixed.length > 0) {
+  if (db.salary.amount > 0 || db.recurringIncome.length > 0) {
     var html = '';
     for (var i = 0; i < 3; i++) {
       var dt = new Date(now.getFullYear(), now.getMonth()+i, 1);
       var label = (dt.getMonth()+1) + '月';
+      var monthKey = dt.getFullYear() + '-' + pad(dt.getMonth()+1);
       var inc = db.salary.amount;
+      db.recurringIncome.forEach(function(r) {
+        var nextDate = new Date(r.next + '-01');
+        var diffMonths = (dt.getFullYear() - nextDate.getFullYear()) * 12 + (dt.getMonth() - nextDate.getMonth());
+        if (diffMonths >= 0 && diffMonths % r.interval === 0) inc += r.amount;
+      });
       var exp = fixedTotal;
       var diff = inc - exp;
-      var pct = Math.min(100, Math.round(exp/inc*100));
+      var pct = inc > 0 ? Math.min(100, Math.round(exp/inc*100)) : 0;
       html += '<div class="forecast-row"><div class="f-month">'+label+'</div><div class="f-bars"><div class="f-bar" style="width:100%;background:var(--green);opacity:0.2"></div><div class="f-bar" style="width:'+pct+'%;background:var(--red)"></div><div class="f-labels"><span>収入 '+fmt(inc)+'</span><span>固定費 '+fmt(exp)+'</span></div></div><div class="f-diff '+(diff>=0?'income':'expense')+'">'+(diff>=0?'+':'')+fmt(diff)+'</div></div>';
     }
     fEl.innerHTML = html;
     var nm = new Date(now.getFullYear(), now.getMonth()+1, 1);
-    uEl.innerHTML = db.fixed.slice().sort(function(a,b){ return a.day-b.day; }).map(function(f){
-      return '<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+f.day+'日 · '+f.cat+'</div></div><div class="row-amt expense">'+fmt(f.amount)+'</div></div>';
-    }).join('');
+    var nmKey = nm.getFullYear() + '-' + pad(nm.getMonth()+1);
+    var upcomingItems = db.fixed.slice().sort(function(a,b){ return a.day-b.day; }).map(function(f){
+      return '<div class="row"><div class="row-left"><div class="row-name">'+f.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+f.day+'日 · 固定費</div></div><div class="row-amt expense">'+fmt(f.amount)+'</div></div>';
+    });
+    db.recurringIncome.forEach(function(r) {
+      var nextDate = new Date(r.next + '-01');
+      var diffMonths = (nm.getFullYear() - nextDate.getFullYear()) * 12 + (nm.getMonth() - nextDate.getMonth());
+      if (diffMonths >= 0 && diffMonths % r.interval === 0) {
+        upcomingItems.push('<div class="row"><div class="row-left"><div class="row-name">'+r.name+'</div><div class="row-sub">'+(nm.getMonth()+1)+'月'+r.day+'日 · 定期収入</div></div><div class="row-amt income">+'+fmt(r.amount)+'</div></div>');
+      }
+    });
+    uEl.innerHTML = upcomingItems.length ? upcomingItems.join('') : '<div class="empty">予定された収支はありません</div>';
   } else {
-    fEl.innerHTML = '<div class="empty">給料と固定費を設定してください</div>';
+    fEl.innerHTML = '<div class="empty">給料または定期収入を設定してください</div>';
     uEl.innerHTML = '<div class="empty">固定費を設定すると表示されます</div>';
   }
 
