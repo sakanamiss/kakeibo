@@ -127,8 +127,8 @@ input:focus,select:focus{outline:2px solid var(--green);outline-offset:-1px}
           <input type="number" id="f-amount" inputmode="numeric" placeholder="例：70000">
         </div>
         <div>
-          <label class="field-label">支払日</label>
-          <select id="f-day"></select>
+          <label class="field-label">支払日（日）</label>
+          <select id="f-day"><option value="">選択</option></select>
         </div>
       </div>
       <label class="field-label">カテゴリ</label>
@@ -223,9 +223,6 @@ document.getElementById('hd-month').textContent = now.getFullYear() + '年' + (n
 document.getElementById('a-date').valueAsDate = now;
 
 var daySelect = document.getElementById('f-day');
-var opt0 = document.createElement('option');
-opt0.value = ''; opt0.textContent = '選択';
-daySelect.appendChild(opt0);
 for (var d = 1; d <= 31; d++) {
   var o = document.createElement('option');
   o.value = String(d);
